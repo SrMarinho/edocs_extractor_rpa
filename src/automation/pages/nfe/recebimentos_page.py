@@ -1,10 +1,13 @@
 import os
 from enum import Enum
 import time
+from typing import Optional
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from src.logger_instance import logger
 
 
@@ -15,7 +18,6 @@ class RecebimentosFilterSituacao(Enum):
     CRITICA_VALIDACAO = "Critica Validacao"
     CANCELADA = "Cancelada"
     DENEGADA = "Denegada"
-    
 
 class RecebimentosFilterRetorno(Enum):
     ALL = "Todos"
@@ -96,9 +98,9 @@ class RecebimentosPage:
     URL = os.getenv("URL_EDOCS") + "/Nfe/NFeRecebimento.aspx"
     PAGE_NAME = "Nfe/Recebimentos"
 
-    def __init__(self, driver: WebDriver, filter: RecebimentosFilter):
+    def __init__(self, driver: WebDriver, filter: Optional[RecebimentosFilter] = None):
         self.driver = driver
-        self.filter = filter
+        self.filter = filter or RecebimentosFilter()
         self.filterMenu = False
 
     def navigate(self):
@@ -111,26 +113,9 @@ class RecebimentosPage:
         self.filterMenu = True
         logger.debug(f"{self.PAGE_NAME} - Toggle nos filtros de Nfe/Recebimentos, estado atual: {self.filterMenu}")
     
-    def preencherFiltros(self):
-        logger.info(f"{self.PAGE_NAME} - Preenchendo filtros")
-        time.sleep(0.2)
-        self.setSituacao()
-        self.setNumero()
-        self.setRetorno()
-        self.setDataEntrada()
-        time.sleep(0.2)
-        self.setDataSaida()
-        time.sleep(0.2)
-        self.setTipo()
-        self.setTipoNota()
-        self.setCpnjCpfEmitente()
-        self.setUfEmitente()
-        self.setNomeDestinatario()
-        time.sleep(0.2)
-    
     def setSituacao(self) -> None:
         logger.debug(f"{self.PAGE_NAME} - Selectionando situação: {self.filter.situacao.value}")
-        dropdown_situacao = self.driver.find_element(By.ID, "filtrofltRecebimento0")  # ou qualquer outro locator
+        dropdown_situacao = self.driver.find_element(By.ID, "filtrofltRecebimento0")
         dropdown = Select(dropdown_situacao)
         match self.filter.situacao:
             case RecebimentosFilterSituacao.ALL:
@@ -188,10 +173,13 @@ class RecebimentosPage:
         try:
             if not self.filter.data_entrada: return
             logger.debug(f"{self.PAGE_NAME} - Preenchendo data entrada: {self.filter.data_entrada}")
-            text_field_data_entrada = self.driver.find_element(By.ID, "filtrofltRecebimento6")
-            text_field_data_entrada.click()
-            text_field_data_entrada.send_keys(self.filter.data_entrada)
-            text_field_data_entrada.send_keys(Keys.ENTER)
+
+            element = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "filtrofltRecebimento6"))
+            )
+            element.click()
+            element.send_keys(self.filter.data_entrada)
+            element.send_keys(Keys.ENTER)
         except Exception as e:
             logger.error(f"{self.PAGE_NAME} - Falha ao preencher data entrada: {str(e)}")
             raise
@@ -200,11 +188,13 @@ class RecebimentosPage:
     def setDataSaida(self) -> None:
         try:
             if not self.filter.data_saida: return
-            logger.debug(f"{self.PAGE_NAME} - Preenchendo data saída: {self.filter.data_saida}")
-            text_field = self.driver.find_element(By.ID, "filtrofltRecebimento6_2")
-            text_field.click()
-            text_field.send_keys(self.filter.data_saida)
-            text_field.send_keys(Keys.ENTER)
+            
+            element = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "filtrofltRecebimento6_2"))
+            )
+            element.click()
+            element.send_keys(self.filter.data_saida)
+            element.send_keys(Keys.ENTER)
         except Exception as e:
             logger.error(f"{self.PAGE_NAME} - Falha ao preencher data saída: {str(e)}")
             raise
@@ -288,11 +278,74 @@ class RecebimentosPage:
             logger.error(f"{self.PAGE_NAME} - Falha ao preencher nome destinatário: {str(e)}")
             raise
 
-    def saveXML(self) -> bool:
+    def saveAllXML(self) -> bool:
+        """
+        Salva os recebimentos em formato XML.
+        
+        Important:
+            - Antes de salvar, é necessário focar em alguma linha da tabela
+        """
+        logger.info(f"{self.PAGE_NAME} - Salvando recebimentos em XML")
         try:
-            btn_xml = self.wait_for_element(By.ID, "btnXmlNfeRecebida")
-            btn_xml.click()
+            element = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.ID, "divXml"))
+            )
+
+            btn_save_all = element.find_element(By.TAG_NAME, "a")
+            btn_save_all.click()
+
+            btn_confirmation = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.ID, "btnXmlAgrupado"))
+            )
+            btn_confirmation.click()
+
             return True
         except Exception as e:
-            logger.error(f"Falha ao salvar XML: {str(e)}")
+            logger.error(f"{self.PAGE_NAME} - Falha ao salvar XML: {str(e)}")
             return False
+    
+    def applyFilters(self) -> bool:
+        logger.info(f"{self.PAGE_NAME} - Aplicando filtros")
+        try:
+            element = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.ID, "filtrofltRecebimentook"))
+            )
+            element.click()
+            return False
+        except Exception as e:
+            logger.error(f"{self.PAGE_NAME} - Falha ao aplicar filtros: {str(e)}")
+            return False
+    
+    def tableFocus(self) -> bool:
+        try:
+            table = self.driver.find_element(By.ID, "gridNfe")
+
+            first_row = WebDriverWait(table, 10).until(
+                EC.element_to_be_clickable((By.TAG_NAME, "tr"))
+            )
+            first_row.click()
+        except Exception as e:
+            logger.error(f"{self.PAGE_NAME} - Falha ao tentar focar na tabela: {str(e)}")
+            return False
+    
+    def hasReceipt(self) -> bool:
+        try:
+            table = self.driver.find_element(By.ID, "gridNfe")
+            first_row = WebDriverWait(table, 10).until(
+                EC.element_to_be_clickable((By.TAG_NAME, "tr"))
+            )
+            if first_row:
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"{self.PAGE_NAME} - Falha ver se tem registro na tabela: {str(e)}")
+            return False
+    
+    def handleXMLDownloadMessage(self) -> bool:
+        try:
+            element = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.ID, "btnBarraMensagemSim"))
+            )
+            element.click()
+        except Exception as e:
+            ...

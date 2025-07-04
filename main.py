@@ -2,14 +2,19 @@ import os
 import time
 from dotenv import load_dotenv
 from selenium import webdriver
-from src.logger_instance import logger
+import tempfile
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.edge.service import Service
-import tempfile
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver
 from src.automation.pages.login_page import LoginPage
-from src.automation.pages.nfe.recebimentos_page import RecebimentosPage, RecebimentosFilter, RecebimentosFilterSituacao, RecebimentosFilterTipo
+from src.automation.pages.nfe.recebimentos_page import (
+    RecebimentosPage, 
+    RecebimentosFilter, 
+    RecebimentosFilterSituacao, 
+    RecebimentosFilterTipo
+)
+from src.automation.tasks.extrator_recebimentos import ExtratorRecebimentos
+from src.core.use_cases.coletor_recebimentos import ColetorRecebimentos
+from src.config.config import download_directory
 
 def main():
     load_dotenv()
@@ -19,6 +24,12 @@ def main():
     options = Options()
     options.add_argument(f"user-data-dir={temp_profile}")
     options.add_argument("--incognito")
+    options.add_experimental_option("prefs", {
+        "download.default_directory": download_directory,  # Define o local de download
+        "download.prompt_for_download": False,       # Desativa a confirmação
+        "download.directory_upgrade": True,          # Permite alterar o diretório
+        "safebrowsing.enabled": True                # Desativa avisos de segurança
+    })
 
     edge_driver_path = './drivers/msedgedriver.exe'
     service = Service(executable_path=edge_driver_path)
@@ -28,24 +39,20 @@ def main():
     password = os.getenv("EDOCS_PASSWORD")
     
     logingPage = LoginPage(driver, username, password)
-    logingPage.navigate()
-    logingPage.logar()
-    time.sleep(2)
 
     recebimentosFilter = RecebimentosFilter(
-        situacao=RecebimentosFilterSituacao.RECEBIDA_FORNECEDOR,
-        data_entrada="01/07/2025",
-        data_saida="02/07/2025",
+        situacao=RecebimentosFilterSituacao.AUTORIZO_USO,
+        data_entrada="03/07/2025",
+        data_saida="04/07/2025",
         tipo = RecebimentosFilterTipo.DESTINATARIO
     )
 
     recebimentosPage = RecebimentosPage(driver, recebimentosFilter)
 
-    recebimentosPage.navigate()
-    time.sleep(10)
-    recebimentosPage.toggleFilterMenu()
-    time.sleep(5)
-    recebimentosPage.preencherFiltros()
+    coletorRecebimentos = ColetorRecebimentos(recebimentosPage)
+
+    extratorRecebimentos = ExtratorRecebimentos(logingPage, coletorRecebimentos)
+    extratorRecebimentos.execute()
 
     time.sleep(5)
     driver.quit()
