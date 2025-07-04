@@ -57,4 +57,4 @@ temp/
 .env
 
 drivers/
-files/
+files/**
