@@ -114,7 +114,7 @@ class RecebimentosPage:
         logger.debug(f"{self.PAGE_NAME} - Toggle nos filtros de Nfe/Recebimentos, estado atual: {self.filterMenu}")
     
     def setSituacao(self) -> None:
-        logger.debug(f"{self.PAGE_NAME} - Selectionando situação: {self.filter.situacao.value}")
+        logger.debug(f"{self.PAGE_NAME} - Selecionando situação: {self.filter.situacao.value}")
         dropdown_situacao = self.driver.find_element(By.ID, "filtrofltRecebimento0")
         dropdown = Select(dropdown_situacao)
         match self.filter.situacao:
@@ -147,7 +147,7 @@ class RecebimentosPage:
     def setRetorno(self) -> None:
         try:
             if not self.filter.retorno: return
-            logger.debug(f"{self.PAGE_NAME} - Selectionando retorno: {self.filter.retorno.value}")
+            logger.debug(f"{self.PAGE_NAME} - Selecionando retorno: {self.filter.retorno.value}")
             dropdown_retorno = self.driver.find_element(By.ID, "filtrofltRecebimento4")
             dropdown = Select(dropdown_retorno)
             match self.filter.retorno:
@@ -202,7 +202,7 @@ class RecebimentosPage:
     def setTipo(self) -> None:
         try:
             if not self.filter.tipo: return
-            logger.debug(f"{self.PAGE_NAME} - Selectionando tipo: {self.filter.tipo.value}")
+            logger.debug(f"{self.PAGE_NAME} - Selecionando tipo: {self.filter.tipo.value}")
             dropdown_select = self.driver.find_element(By.ID, "filtrofltRecebimento7")
             dropdown = Select(dropdown_select)
             match self.filter.tipo:
@@ -223,7 +223,7 @@ class RecebimentosPage:
     def setTipoNota(self) -> None:
         try:
             if not self.filter.tipo_nota: return
-            logger.debug(f"{self.PAGE_NAME} - Selectionando tipo nota: {self.filter.tipo_nota.value}")
+            logger.debug(f"{self.PAGE_NAME} - Selecionando tipo nota: {self.filter.tipo_nota.value}")
             dropdown_tipo_nota = self.driver.find_element(By.ID, "filtrofltRecebimento4")
             dropdown = Select(dropdown_tipo_nota)
             match self.filter.retorno:
@@ -254,7 +254,7 @@ class RecebimentosPage:
     def setUfEmitente(self) -> None:
         try:
             if not self.filter.uf_emissao: return
-            logger.debug(f"{self.PAGE_NAME} - Selectionando UF Emissão: {self.filter.uf_emissao.value}")
+            logger.debug(f"{self.PAGE_NAME} - Selecionando UF Emissão: {self.filter.uf_emissao.value}")
             dropdown_selection = self.driver.find_element(By.ID, "filtrofltRecebimento4")
             dropdown = Select(dropdown_selection)
             match self.filter.retorno:

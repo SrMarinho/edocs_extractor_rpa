@@ -2,7 +2,6 @@ import time
 from src.core.use_cases.coletor_recebimentos import ColetorRecebimentos
 from src.automation.pages.login_page import LoginPage
 
-
 class ExtratorRecebimentos:
     def __init__(self, login_page: LoginPage, coletor_recebimentos: ColetorRecebimentos):
         self.login_page = login_page
