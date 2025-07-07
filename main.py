@@ -1,12 +1,12 @@
 import os
 import time
-from dotenv import load_dotenv
 from selenium import webdriver
 import tempfile
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.edge.service import Service
 from src.automation.tasks.extrator_recebimentos import ExtratorRecebimentos
 from src.core.use_cases.coletor_recebimentos import ColetorRecebimentos
+import src.config.config as config
 from src.automation.pages.login_page import LoginPage
 from src.automation.pages.nfe.recebimentos_page import (
     RecebimentosPage, 
@@ -15,7 +15,9 @@ from src.automation.pages.nfe.recebimentos_page import (
     RecebimentosFilterTipo
 )
 from src.automation.pages.inicial.segundo_plano_page import SegundoPlanoPage
-import src.config.config as config
+from src.core.use_cases.download_recebimentos import DownloadRecebimentos
+from src.core.use_cases.processador_recebimentos import ProcessadorRecebimentos
+from src.automation.tasks.extrator_recebimentos import ExtratorRecebimentos
 
 def setup_options():
     # Criar um perfil temporário
@@ -29,16 +31,16 @@ def setup_options():
     # options.add_argument("headless")
     # options.add_argument("disable-gpu")
     options.add_experimental_option("prefs", {
-        "download.default_directory": config.get_download_directory(),  # Define o local de download
+        "download.default_directory": rf"{config.DOWNLOAD_PATH}",  # Define o local de download
         "download.prompt_for_download": False,       # Desativa a confirmação
         "download.directory_upgrade": True,          # Permite alterar o diretório
+        "savefile.default_directory": config.DOWNLOAD_PATH,
         "safebrowsing.enabled": True                # Desativa avisos de segurança
     })
     return options
 
 def main():
-    load_dotenv()
-
+    
     edger_driver = config.Drivers().edge
 
     options = setup_options()
@@ -49,33 +51,28 @@ def main():
     password = os.getenv("EDOCS_PASSWORD")
     
     logingPage = LoginPage(driver, username, password)
-    logingPage.logar()
     time.sleep(2)
-    segundo_plano_page = SegundoPlanoPage(driver)
-    segundo_plano_page.navigate()
-    time.sleep(2)
-    segundo_plano_page.download_all_results()
 
-    time.sleep(30)
-    driver.quit()
-    return
-
-    recebimentosFilter = RecebimentosFilter(
+    recebimentos_filters = RecebimentosFilter(
         situacao=RecebimentosFilterSituacao.AUTORIZO_USO,
-        data_entrada="03/07/2025",
-        data_saida="04/07/2025",
-        tipo = RecebimentosFilterTipo.DESTINATARIO
+        data_entrada="06/07/2025",
+        data_saida="07/07/2025",
+        tipo=RecebimentosFilterTipo.DESTINATARIO
     )
 
-    recebimentosPage = RecebimentosPage(driver, recebimentosFilter)
+    recebimentos_page = RecebimentosPage(driver, recebimentos_filters)
 
-    coletorRecebimentos = ColetorRecebimentos(recebimentosPage)
+    coletor_recebimentos = ColetorRecebimentos(recebimentos_page)
 
-    extratorRecebimentos = ExtratorRecebimentos(logingPage, coletorRecebimentos)
-    extratorRecebimentos.execute()
+    segundo_plano_page = SegundoPlanoPage(driver)
 
-    time.sleep(5)
-    driver.quit()
+    download_recebimentos = DownloadRecebimentos(segundo_plano_page)
+
+    processador_recebimentos = ProcessadorRecebimentos()
+
+    extrator_recebimentos = ExtratorRecebimentos(logingPage, coletor_recebimentos, download_recebimentos, processador_recebimentos)
+    extrator_recebimentos.execute()
+    time.sleep(20)
     
 if __name__ == "__main__":
     main()

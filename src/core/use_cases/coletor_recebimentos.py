@@ -1,7 +1,7 @@
+import time
 from selenium.webdriver.remote.webdriver import WebDriver
 from src.automation.pages.nfe.recebimentos_page import RecebimentosPage
 from src.logger_instance import logger
-import time
 
 class ColetorRecebimentos:
     def __init__(self, recebimentos_page: RecebimentosPage):
@@ -13,13 +13,15 @@ class ColetorRecebimentos:
             
             self.recebimentos_page.navigate()
             self.recebimentos_page.toggleFilterMenu()
-            
+            time.sleep(2)
+
             self._aplicar_filtros()
             
             self.recebimentos_page.applyFilters()
                 
             time.sleep(2)
             
+            return
             if self.recebimentos_page.hasReceipt():
                 self.recebimentos_page.saveAllXML()
                 time.sleep(2)

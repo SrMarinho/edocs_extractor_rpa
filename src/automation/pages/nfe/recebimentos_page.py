@@ -95,7 +95,7 @@ class RecebimentosFilter:
 
 class RecebimentosPage:
 
-    URL = os.getenv("URL_EDOCS") + "/Nfe/NFeRecebimento.aspx"
+    URL = str(os.getenv("URL_EDOCS")) + "/Nfe/NFeRecebimento.aspx"
     PAGE_NAME = "Nfe/Recebimentos"
 
     def __init__(self, driver: WebDriver, filter: Optional[RecebimentosFilter] = None):

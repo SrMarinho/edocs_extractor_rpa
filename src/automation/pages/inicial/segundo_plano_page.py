@@ -19,7 +19,7 @@ class ProcessamentoTable:
    resultado: str
 
 class SegundoPlanoPage:
-    URL = os.getenv("URL_EDOCS") + "/Sistema/SegundoPlano/ProcessamentoSegundoPlano.aspx"
+    URL = str(os.getenv("URL_EDOCS")) + "/Sistema/SegundoPlano/ProcessamentoSegundoPlano.aspx"
     PAGE_NAME = "SegundoPlano"
 
     def __init__(self, driver: WebDriver):
@@ -29,17 +29,32 @@ class SegundoPlanoPage:
         self.driver.get(self.URL)
     
     def refresh_list(self):
-        ...
+        try:
+            element = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.ID, "btnAtualizarGrid"))
+            )
+            element.click()
+        except Exception as e:
+            logger.error(f"{self.PAGE_NAME} - Atualizar lista de processamento: {str(e)}")
     
     def download_result(self, row: WebElement) -> None:
         logger.info(f"{self.PAGE_NAME} - Baixando registro - {row.text}")
         try:
-            cells = row.find_elements(By.TAG_NAME, "td")
-            if cells[7]:
-                file_link = cells[7].find_element(By.TAG_NAME, "a")
-                file_link.click()
+            for i in range(10):
+                cells = row.find_elements(By.TAG_NAME, "td")
+                if cells[7]:
+                    element = WebDriverWait(cells[7], 10).until(
+                        EC.presence_of_element_located((By.TAG_NAME, "a"))
+                    )
+                    if element and element.text.endswith(".zip"):
+                        element.click()
+                        return
+                    else:
+                        self.refresh_list()
+                        time.sleep(15)
+            
         except Exception as e:
-            logger.error(f"{self.PAGE_NAME} - Falha ao tentar baixar arquivo: {str(e)}")
+            logger.error(f"{self.PAGE_NAME} - Falha ao tentar baixar arquivo - {row.text}: {str(e)}")
 
     def download_all_results(self):
         logger.info(f"{self.PAGE_NAME} - Baixando registros")
@@ -48,7 +63,6 @@ class SegundoPlanoPage:
             body = table.find_element(By.TAG_NAME, "tbody")
             rows = body.find_elements(By.TAG_NAME, "tr")
             for row in rows:
-                logger.debug(row.text)
                 self.download_result(row)
         except Exception as e:
             logger.error(f"{self.PAGE_NAME} - Falha ao tentar baixar arquivos: {str(e)}")

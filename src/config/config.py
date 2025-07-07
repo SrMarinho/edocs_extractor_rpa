@@ -18,3 +18,7 @@ class Drivers:
 def get_download_directory() -> str:
     """Função para carregar o diretório de download quando chamada"""
     return rf"{os.getenv("XML_COMPRESSED_FILES_DESTINATION")}"
+
+TEMP_PATH = rf"{os.getcwd()}\files\temp"
+DOWNLOAD_PATH = os.getenv("DOWNLOAD_PATH", rf"{os.getcwd()}\files\zip")
+XML_DESTINATION_PATH = os.getenv("XML_FILE_FINAL_DESTINATION", rf"{os.getcwd()}\files\xml")
