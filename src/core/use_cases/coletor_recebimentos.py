@@ -21,7 +21,6 @@ class ColetorRecebimentos:
                 
             time.sleep(2)
             
-            return
             if self.recebimentos_page.hasReceipt():
                 self.recebimentos_page.saveAllXML()
                 time.sleep(2)

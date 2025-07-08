@@ -10,6 +10,8 @@ class DownloadRecebimentos:
         self.segundo_plano_page.navigate()
         time.sleep(5)
         self.segundo_plano_page.download_all_results()
+        time.sleep(30)
+        self.segundo_plano_page.clearTable()
     
     def quit(self):
         self.segundo_plano_page.quit()

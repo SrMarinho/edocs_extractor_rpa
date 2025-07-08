@@ -56,8 +56,8 @@ def main():
 
     recebimentos_filters = RecebimentosFilter(
         situacao=RecebimentosFilterSituacao.AUTORIZO_USO,
-        data_entrada="06/07/2025",
-        data_saida="07/07/2025",
+        data_entrada="07/07/2025",
+        data_saida="08/07/2025",
         tipo=RecebimentosFilterTipo.DESTINATARIO
     )
 

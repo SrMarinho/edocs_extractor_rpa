@@ -23,10 +23,10 @@ class ExtratorRecebimentos:
     def execute(self):
         self.login_page.logar()
         time.sleep(2)
-        # self.coletor_recebimentos.execute()
-        # time.sleep(60)
+        self.coletor_recebimentos.execute()
+        time.sleep(5)
         self.download_recebimentos.execute()
-        time.sleep(2)
+        time.sleep(120)
         self.download_recebimentos.quit()
 
         zip_dir = Path(DOWNLOAD_PATH)
