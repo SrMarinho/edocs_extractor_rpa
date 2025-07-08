@@ -18,6 +18,7 @@ from src.automation.pages.inicial.segundo_plano_page import SegundoPlanoPage
 from src.core.use_cases.download_recebimentos import DownloadRecebimentos
 from src.core.use_cases.processador_recebimentos import ProcessadorRecebimentos
 from src.automation.tasks.extrator_recebimentos import ExtratorRecebimentos
+from src.logger_instance import logger
 
 def setup_options():
     # Criar um perfil temporário
@@ -31,10 +32,10 @@ def setup_options():
     # options.add_argument("headless")
     # options.add_argument("disable-gpu")
     options.add_experimental_option("prefs", {
-        "download.default_directory": rf"{config.DOWNLOAD_PATH}",  # Define o local de download
+        "download.default_directory": config.DOWNLOAD_PATH.replace("/", "\\"),  # Define o local de download
         "download.prompt_for_download": False,       # Desativa a confirmação
         "download.directory_upgrade": True,          # Permite alterar o diretório
-        "savefile.default_directory": config.DOWNLOAD_PATH,
+        "savefile.default_directory": config.DOWNLOAD_PATH.replace("/", "\\"),
         "safebrowsing.enabled": True                # Desativa avisos de segurança
     })
     return options
@@ -72,7 +73,6 @@ def main():
 
     extrator_recebimentos = ExtratorRecebimentos(logingPage, coletor_recebimentos, download_recebimentos, processador_recebimentos)
     extrator_recebimentos.execute()
-    time.sleep(20)
     
 if __name__ == "__main__":
     main()

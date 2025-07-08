@@ -12,6 +12,7 @@ class ProcessadorRecebimentos:
         self.zip_file = None
 
     def execute(self):
+        logger.info(f"Iniciando processamentos dos recebimentos para {self.zip_file}")
         if not self.zip_file:
             logger.warning("É necessário indicar o um arquivo")
             raise ValueError("É necessário indicar o um arquivo")
@@ -22,6 +23,7 @@ class ProcessadorRecebimentos:
         self._limpar_temp()
 
     def _extrair_zip(self):
+        logger.info(f"Extraindo {self.zip_file} para {self.temp_dir / self.zip_file}")
         try:
             self.temp_dir.mkdir(exist_ok=True)
 
@@ -33,6 +35,7 @@ class ProcessadorRecebimentos:
             raise
             
     def _filtrar_arquivos(self):
+        logger.info(f"Filtrando arquivos de {self.temp_dir / self.zip_file}")
         try:
             # Filtrando arquivos para penas apenas os que não possuem NFe-OPCIEN
             self.arquivos_validos = [
@@ -43,21 +46,39 @@ class ProcessadorRecebimentos:
             logger.error(f"Erro ao tentar filtrar arquivos - {str(e)}")
             raise
         
+
     def _mover_validos(self):
+        logger.info(f"Movendo arquivos validos de {self.temp_dir / self.zip_file} para {Path(XML_DESTINATION_PATH)}")
         try:
             destino_final = Path(XML_DESTINATION_PATH)
             destino_final.mkdir(parents=True, exist_ok=True)
             
             for arquivo in self.arquivos_validos:
-                shutil.move(str(arquivo), str(destino_final))
+                try:
+                    destino = destino_final / arquivo.name
+                    
+                    # Se o arquivo já existir no destino, encontra um novo nome
+                    counter = 1
+                    while destino.exists():
+                        nome_base = arquivo.stem
+                        extensao = arquivo.suffix
+                        novo_nome = f"{nome_base}_{counter}{extensao}"
+                        destino = destino_final / novo_nome
+                        counter += 1
+                    
+                    shutil.move(str(arquivo), str(destino))
+                except Exception as e:
+                    logger.warning(f"Erro ao tentar mover arquivo {str(arquivo)} para {destino_final} - {str(e)}")
         except Exception as e:
             logger.error(f"Erro ao tentar mover arquivos filtrados - {str(e)}")
             raise
             
     def _limpar_temp(self):
+        logger.info(f"Limpando pasta temporaria {self.temp_dir / self.zip_file}")
         try:
             shutil.rmtree(self.temp_dir / self.zip_file)
-            # (self.zip_path / self.zip_file).unlink()
+            logger.info(f"Removendo arquivo {(self.zip_path / self.zip_file)}")
+            (self.zip_path / self.zip_file).unlink()
         except Exception as e:
             logger.error(f"Erro ao limpar pasta temp - {str(e)}")
             raise
