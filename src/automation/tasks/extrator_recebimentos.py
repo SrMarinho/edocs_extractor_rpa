@@ -28,6 +28,7 @@ class ExtratorRecebimentos:
         self.download_recebimentos.execute()
         time.sleep(120)
         self.download_recebimentos.quit()
+        time.sleep(1)
 
         zip_dir = Path(DOWNLOAD_PATH)
 
