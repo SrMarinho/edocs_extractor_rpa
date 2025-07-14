@@ -26,7 +26,7 @@ function Install-Python {
         Write-Host "Python não encontrado. Instalando..." -ForegroundColor Yellow
         
         # Baixar o instalador do Python
-        $pythonUrl = "https://www.python.org/ftp/python/3.11.4/python-3.11.4-amd64.exe"
+        $pythonUrl = "https://www.python.org/ftp/python/3.12.2/python-3.12.2-amd64.exe"
         $installerPath = "$env:TEMP\python-installer.exe"
         
         Write-Host "Baixando instalador do Python..." -ForegroundColor Cyan
@@ -106,25 +106,12 @@ function Install-Dependencies {
 
 # Função principal
 function Main {
-    # 1. Verificar e instalar Python se necessário
     Install-Python
     
-    # 2. Configurar ambiente virtual (opcional - descomente se quiser usar)
-    # Setup-VirtualEnv -envName "venv"
+    Setup-VirtualEnv -envName "venv"
     
     # 3. Instalar dependências (se houver requirements.txt)
-    Install-Dependencies
-    
-    # 4. Executar o script Python
-    $scriptPath = ".\meu_script.py"  # Altere para o caminho do seu script
-    
-    if (Test-Path $scriptPath) {
-        Write-Host "Executando script Python: $scriptPath" -ForegroundColor Cyan
-        python $scriptPath
-    } else {
-        Write-Host "Script Python não encontrado em: $scriptPath" -ForegroundColor Red
-        Write-Host "Crie um arquivo 'meu_script.py' ou ajuste a variável `$scriptPath no código." -ForegroundColor Yellow
-    }
+    Install-Dependencies   
 }
 
 # Executar função principal
