@@ -1,7 +1,9 @@
 import os
-from enum import Enum
 import time
+from datetime import datetime, timedelta
+from enum import Enum, unique
 from typing import Optional
+import toml
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
@@ -11,67 +13,93 @@ from selenium.webdriver.support import expected_conditions as EC
 from src.logger_instance import logger
 
 
+
+@unique
 class RecebimentosFilterSituacao(Enum):
-    ALL = "Todos"
-    RECEBIDA_FORNECEDOR = "Recebida Fornecedor"
-    AUTORIZO_USO = "Autorizo Uso"
-    CRITICA_VALIDACAO = "Critica Validacao"
-    CANCELADA = "Cancelada"
-    DENEGADA = "Denegada"
-
-class RecebimentosFilterRetorno(Enum):
-    ALL = "Todos"
-    RETORNADO = "Retornado"
-    CONSULTA_PENDENTE = "Consulta pendente"
-    NAO_RETORNADO = "Não retornado"
-    DESATIVADO = "Desativado"
-    ERRO_RETORNO = "Erro Retorno"
-
-class RecebimentosFilterTipoNota(Enum):
-    ALL = "Todos"
-    ENTRADA = "Entrada"
-    SAIDA = "Saída"
-
-class RecebimentosFilterUfEmissao(Enum):
-    ALL = "Todas"
-    PI = "Piauí"
-    MA = "Maranhão"
-
-class RecebimentosFilterTipo(Enum):
-    ALL = "Todos"
-    DESTINATARIO = "Destinatario"
-    TERCEIRO = "Terceiro"
-    TRANSPORTADOR = "Transportador"
+    ALL = "ALL"
+    RECEBIDA_FORNECEDOR = "RECEBIDA_FORNECEDOR"
+    AUTORIZO_USO = "AUTORIZO_USO"
+    CRITICA_VALIDACAO = "CRITICA_VALIDACAO"
+    CANCELADA = "CANCELADA"
+    DENEGADA = "DENEGADA"
     
+    def __str__(self):
+        return self.name
+
+@unique
+class RecebimentosFilterRetorno(Enum):
+    ALL = "ALL"
+    RETORNADO = "RETORNADO"
+    CONSULTA_PENDENTE = "CONSULTA_PENDENTE"
+    NAO_RETORNADO = "NAO_RETORNADO"
+    DESATIVADO = "DESATIVADO"
+    ERRO_RETORNO = "ERRO_RETORNO"
+    
+    def __str__(self):
+        return self.name
+
+@unique
+class RecebimentosFilterTipoNota(Enum):
+    ALL = "ALL"
+    ENTRADA = "ENTRADA"
+    SAIDA = "SAIDA"
+    
+    def __str__(self):
+        return self.name
+
+@unique
+class RecebimentosFilterUfEmissao(Enum):
+    ALL = "ALL"
+    PI = "PI"
+    MA = "MA"
+    
+    def __str__(self):
+        return self.name
+
+@unique
+class RecebimentosFilterTipo(Enum):
+    ALL = "ALL"
+    DESTINATARIO = "DESTINATARIO"
+    TERCEIRO = "TERCEIRO"
+    TRANSPORTADOR = "TRANSPORTADOR"
+    
+    def __str__(self):
+        return self.name
+
+@unique
 class RecebimentosFilterManifestacaoDestinatario(Enum):
-    ALL = "Todos"
-    CIENCIA_OPERACAO = "Ciência da Operação"
-    CONFIRMACAO_OPERACAO = "Confirmação da Operação"
-    OPERACAO_NAO_REALIZADA = "Operação não Realizada"
-    DESCONHECIMENTO_OPERACAO = "Desconhecimento da Operação"
+    ALL = "ALL"
+    CIENCIA_OPERACAO = "CIENCIA_OPERACAO"
+    CONFIRMACAO_OPERACAO = "CONFIRMACAO_OPERACAO"
+    OPERACAO_NAO_REALIZADA = "OPERACAO_NAO_REALIZADA"
+    DESCONHECIMENTO_OPERACAO = "DESCONHECIMENTO_OPERACAO"
+    
+    def __str__(self):
+        return self.name
 
 class RecebimentosFilter:
+    PARAMS_FILE = "files/parametros/recebimentos_filters.toml"
     def __init__(
         self,
-        situacao: RecebimentosFilterSituacao = RecebimentosFilterSituacao.ALL, 
+        situacao: str =  "", 
         numero: str = "",
-        retorno: RecebimentosFilterRetorno = RecebimentosFilterRetorno.ALL,
+        retorno: str = "",
         data_entrada: str = "",
         data_saida: str = "",
-        tipo_nota: RecebimentosFilterTipoNota = RecebimentosFilterTipoNota.ALL,
+        tipo_nota: str = "",
         cnpj_cpf_emitente: str = "",
-        uf_emissao: RecebimentosFilterUfEmissao = RecebimentosFilterUfEmissao.ALL,
+        uf_emissao: str = "",
         nome_destinatario: str = "",
         serie: str = "",
         chave: str = "",
         total_inicial: str = "",
         total_final: str = "",
-        tipo: RecebimentosFilterTipo = RecebimentosFilterTipo.ALL,
+        tipo: str = "",
         nome_emitente: str = "",
         data_emissao_inicial: str = "",
         data_emissao_final: str = "",
         inscricao_estadual_destinatario: str = "",
-        manifestacao_destinatario: RecebimentosFilterManifestacaoDestinatario = RecebimentosFilterManifestacaoDestinatario.ALL
+        manifestacao_destinatario: str = ""
     ):
         self.situacao = situacao
         self.numero = numero
@@ -92,6 +120,66 @@ class RecebimentosFilter:
         self.data_emissao_final = data_emissao_final
         self.inscricao_estadual_destinatario = inscricao_estadual_destinatario
         self.manifestacao_destinatario = manifestacao_destinatario
+        self._post_init()
+    
+    def _post_init(self):
+        enum_fields = {
+            'situacao': RecebimentosFilterSituacao,
+            'retorno': RecebimentosFilterRetorno,
+            'tipo_nota': RecebimentosFilterTipoNota,
+            'uf_emissao': RecebimentosFilterUfEmissao,
+            'tipo': RecebimentosFilterTipo,
+            'manifestacao_destinatario': RecebimentosFilterManifestacaoDestinatario
+        }
+        
+        for field_name, enum_class in enum_fields.items():
+            current_value = getattr(self, field_name)
+            try:
+                if not isinstance(current_value, enum_class):
+                    setattr(self, field_name, enum_class(current_value))
+            except ValueError as e:
+                logger.info(f"Recebimentos Filter - Valor inválido para {field_name}: {current_value}. Usando valor padrão. Erro: {str(e)}")
+                setattr(self, field_name, enum_class.ALL)
+        
+        
+        if not self.data_entrada:
+            self._post_init_data_entrada()
+
+        if not self.data_saida:
+            self._post_init_data_saida()
+
+    def _post_init_data_entrada(self):
+        current_datetime = datetime.now()
+        aux_date = current_datetime - timedelta(days=1)
+        yesterday_date_formated = aux_date.strftime("%d/%m/%Y")
+        self.data_entrada = yesterday_date_formated
+        logger.debug(f"Recebimentos Filtros - Data entrada vazia, mundando o valor para ontem: {yesterday_date_formated}")
+
+    def _post_init_data_saida(self):
+        current_datetime = datetime.now()
+        current_date_formated = current_datetime.strftime("%d/%m/%Y")
+        self.data_saida = current_date_formated
+        logger.debug(f"Recebimentos Filtros - Data saida vazia, mundando o valor para hoje: {current_date_formated}")
+    
+        
+    
+    @staticmethod
+    def get_params():
+        if RecebimentosFilter.PARAMS_FILE.endswith(".toml"):
+            return RecebimentosFilter._get_params_from_toml()
+        else:
+            raise NotImplementedError("Ainda não foi implementado para aceitar esse tipo de formato de arquivo para os paramêtros")
+    
+    @staticmethod
+    def _get_params_from_toml():
+        logger.info(f"Lendo paramêtros no arquivo {RecebimentosFilter.PARAMS_FILE}")
+        try:
+            with open(RecebimentosFilter.PARAMS_FILE, 'r') as f:
+                return toml.load(f)
+        except FileNotFoundError:
+            logger.info(f"Arquivo não encontrado!")
+        except toml.TomlDecodeError:
+            logger.info(f"Erro na formatação do TOML!")
 
 class RecebimentosPage:
 
@@ -189,6 +277,7 @@ class RecebimentosPage:
         try:
             if not self.filter.data_saida: return
             
+            logger.debug(f"{self.PAGE_NAME} - Preenchendo data saida: {self.filter.data_saida}")
             element = WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable((By.ID, "filtrofltRecebimento6_2"))
             )

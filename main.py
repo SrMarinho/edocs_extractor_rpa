@@ -1,8 +1,6 @@
 import os
 import time
 from selenium import webdriver
-import tempfile
-from selenium.webdriver.edge.options import Options
 from selenium.webdriver.edge.service import Service
 from src.automation.tasks.extrator_recebimentos import ExtratorRecebimentos
 from src.core.use_cases.coletor_recebimentos import ColetorRecebimentos
@@ -11,68 +9,42 @@ from src.automation.pages.login_page import LoginPage
 from src.automation.pages.nfe.recebimentos_page import (
     RecebimentosPage, 
     RecebimentosFilter, 
-    RecebimentosFilterSituacao, 
-    RecebimentosFilterTipo
 )
 from src.automation.pages.inicial.segundo_plano_page import SegundoPlanoPage
 from src.core.use_cases.download_recebimentos import DownloadRecebimentos
 from src.core.use_cases.processador_recebimentos import ProcessadorRecebimentos
 from src.automation.tasks.extrator_recebimentos import ExtratorRecebimentos
+from src.utils.webdriver_utils import setup_edge_options
 from src.logger_instance import logger
 
-def setup_options():
-    # Criar um perfil temporário
-    temp_profile = tempfile.mkdtemp()
-
-    options = Options()
-    options.use_chromium = True
-    options.add_argument(f"user-data-dir={temp_profile}")
-    options.add_argument("--incognito")
-    options.add_argument("--kiosk")
-    # options.add_argument("headless")
-    # options.add_argument("disable-gpu")
-    options.add_experimental_option("prefs", {
-        "download.default_directory": config.DOWNLOAD_PATH.replace("/", "\\"),  # Define o local de download
-        "download.prompt_for_download": False,       # Desativa a confirmação
-        "download.directory_upgrade": True,          # Permite alterar o diretório
-        "savefile.default_directory": config.DOWNLOAD_PATH.replace("/", "\\"),
-        "safebrowsing.enabled": True                # Desativa avisos de segurança
-    })
-    return options
 
 def main():
-    
-    edger_driver = config.Drivers().edge
+    try:
+        options = setup_edge_options(config.DOWNLOAD_PATH)
+        service = Service(executable_path=config.Drivers().edge["path"])
+        
+        with webdriver.Edge(service=service, options=options) as driver:
+            # Inicialização das páginas/services
+            login_page = LoginPage(driver, os.getenv("EDOCS_USERNAME"), os.getenv("EDOCS_PASSWORD"))
+            recebimentos_page = RecebimentosPage(
+                driver, 
+                RecebimentosFilter(
+                    **RecebimentosFilter.get_params()["filtros"]
+                    )
+                )
+            
+            ExtratorRecebimentos(
+                login_page,
+                ColetorRecebimentos(recebimentos_page),
+                DownloadRecebimentos(SegundoPlanoPage(driver)),
+                ProcessadorRecebimentos()
+            ).execute()
 
-    options = setup_options()
-    service = Service(executable_path=edger_driver["path"])
-    driver = webdriver.Edge(service=service, options=options)
-
-    username = os.getenv("EDOCS_USERNAME")
-    password = os.getenv("EDOCS_PASSWORD")
-    
-    logingPage = LoginPage(driver, username, password)
-    time.sleep(2)
-
-    recebimentos_filters = RecebimentosFilter(
-        situacao=RecebimentosFilterSituacao.AUTORIZO_USO,
-        data_entrada="07/07/2025",
-        data_saida="08/07/2025",
-        tipo=RecebimentosFilterTipo.DESTINATARIO
-    )
-
-    recebimentos_page = RecebimentosPage(driver, recebimentos_filters)
-
-    coletor_recebimentos = ColetorRecebimentos(recebimentos_page)
-
-    segundo_plano_page = SegundoPlanoPage(driver)
-
-    download_recebimentos = DownloadRecebimentos(segundo_plano_page)
-
-    processador_recebimentos = ProcessadorRecebimentos()
-
-    extrator_recebimentos = ExtratorRecebimentos(logingPage, coletor_recebimentos, download_recebimentos, processador_recebimentos)
-    extrator_recebimentos.execute()
+    except Exception as e:
+        logger.critical(f"Erro crítico: {e}", exc_info=True)
+        if 'driver' in locals():
+            driver.save_screenshot("erro_critico.png")
+        raise
     
 if __name__ == "__main__":
     main()

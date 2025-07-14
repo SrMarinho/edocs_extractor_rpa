@@ -44,7 +44,7 @@ class SegundoPlanoPage:
                 f"{self.PAGE_NAME} - Atualizar lista de processamento: {str(e)}")
 
     def download_result(self, row: WebElement) -> bool:
-        logger.info(f"{self.PAGE_NAME} - Tentando baixar registro - {row.text}")
+        logger.info(f"{self.PAGE_NAME} - Tentando baixar registro")
         try:
             cells = WebDriverWait(row, 10).until(
                 EC.presence_of_all_elements_located((By.TAG_NAME, "td"))
@@ -58,19 +58,15 @@ class SegundoPlanoPage:
                     return True
                 return True
             except Exception as e:
-                logger.error(
-                    f"{self.PAGE_NAME} - Falha ao tentar baixar arquivo - {row.text}: {str(e)}")
                 return False
         except Exception as e:
-            logger.error(
-                f"{self.PAGE_NAME} - Falha ao tentar baixar arquivo - {row.text}: {str(e)}")
             return False
 
     def download_all_results(self):
         logger.info(f"{self.PAGE_NAME} - Iniciando download de registros")
         
         MAX_REFRESH_ATTEMPTS = 10
-        MAX_DOWNLOAD_ATTEMPTS = 15
+        MAX_DOWNLOAD_ATTEMPTS = 20
         DOWNLOAD_WAIT_TIME = 60
         REFRESH_WAIT_TIME = 15
         
@@ -120,9 +116,6 @@ class SegundoPlanoPage:
         
         Returns:
             bool: True se o download foi bem-sucedido, False caso contrário
-        
-        Raises:
-            TimeoutException: Se elementos não forem encontrados dentro do tempo esperado
         """
         for attempt in range(1, max_attempts + 1):
             try:
@@ -130,6 +123,8 @@ class SegundoPlanoPage:
                 if self.download_result(row):
                     logger.info(f"{self.PAGE_NAME} - Download concluído para linha {row_index + 1}")
                     return True
+                else:
+                    logger.info(f"{self.PAGE_NAME} - Erro ao tentar baixar linha {row_index + 1}")
 
                 logger.debug(f"{self.PAGE_NAME} - Tentativa {attempt}/{max_attempts} para linha {row_index + 1}")
                 
