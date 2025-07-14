@@ -56,6 +56,8 @@ Thumbs.db.env
 temp/
 .env
 
-drivers/**
+# Arquivos do projeto
+drivers/**/*
+!drivers/
 files/
 !files/parametros/

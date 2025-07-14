@@ -1,0 +1,53 @@
+# Configuração de Filtro de Recebimentos
+[filtros]
+# Opções: "ALL", "RECEBIDA_FORNECEDOR", "AUTORIZO_USO", "CRITICA_VALIDACAO", "CANCELADA", "DENEGADA"
+situacao = "AUTORIZO_USO"
+
+# Opções: "ALL", "RETORNADO", "CONSULTA_PENDENTE", "NAO_RETORNADO", "DESATIVADO", "ERRO_RETORNO"
+retorno = "ALL"
+
+# Data no formato DD/MM/YYYY (livre)
+data_entrada = ""
+
+# Data no formato DD/MM/YYYY (livre)
+data_saida = ""
+
+# Opções: "ALL", "ENTRADA", "SAIDA"
+tipo_nota = "ALL"
+
+# CNPJ/CPF sem formatação (livre)
+cnpj_cpf_emitente = ""
+
+# Opções: "ALL", "PI", "MA"
+uf_emissao = "ALL"
+
+# Nome parcial/completo (livre)
+nome_destinatario = ""
+
+# Série da nota (livre)
+serie = ""
+
+# Chave da NFe (livre)
+chave = ""
+
+total_inicial = ""
+
+total_final = ""
+
+# Opções: "ALL", "DESTINATARIO", "TERCEIRO", "TRANSPORTADOR"
+tipo = "DESTINATARIO"
+
+# Nome parcial/completo (livre)
+nome_emitente = ""
+
+# Data no formato DD/MM/YYYY (livre)
+data_emissao_inicial = ""
+
+# Data no formato DD/MM/YYYY (livre)
+data_emissao_final = ""
+
+# IE sem formatação (livre)
+inscricao_estadual_destinatario = ""
+
+# Opções: "ALL", "CIENCIA_OPERACAO", "CONFIRMACAO_OPERACAO", "OPERACAO_NAO_REALIZADA", "DESCONHECIMENTO_OPERACAO"
+manifestacao_destinatario = "ALL"
