@@ -1,5 +1,6 @@
 import os
 import time
+from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service
 from src.automation.tasks.extrator_recebimentos import ExtratorRecebimentos
@@ -15,6 +16,8 @@ from src.core.use_cases.download_recebimentos import DownloadRecebimentos
 from src.core.use_cases.processador_recebimentos import ProcessadorRecebimentos
 from src.automation.tasks.extrator_recebimentos import ExtratorRecebimentos
 from src.utils.webdriver_utils import setup_edge_options
+from src.core.entities.terminal_server import TerminalServer
+from src.core.use_cases.send_to_ts import SendToTs
 from src.logger_instance import logger
 
 

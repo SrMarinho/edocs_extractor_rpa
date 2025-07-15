@@ -110,9 +110,7 @@ function Main {
     
     Setup-VirtualEnv -envName "venv"
     
-    # 3. Instalar dependências (se houver requirements.txt)
     Install-Dependencies   
 }
 
-# Executar função principal
 Main
