@@ -18,23 +18,48 @@ class SendToTs:
         self.explorer_page = ExplorerPage()
 
     def copy_files_to_clipboard(self):
-        """Copia os arquivos para a área de transferência usando PowerShell"""
+        """Copia os arquivos para a área de transferência usando PowerShell com suporte a caminhos longos"""
         try:
-            # Formata os caminhos dos arquivos para o formato Windows
-            formatted_files = [f"\"{str(f).replace('/', '\\')}\"".strip() for f in self.files]
-            files_str = ','.join(formatted_files)
+            # Cria um arquivo temporário com a lista de arquivos
+            temp_list_path = os.path.join(os.path.dirname(self.files[0]), 'temp_file_list.txt')
+            with open(temp_list_path, 'w', encoding='utf-8') as f:
+                for file_path in self.files:
+                    abs_path = os.path.abspath(str(file_path))
+                    f.write(f"{abs_path}\n")
             
-            # Comando PowerShell simplificado para copiar os arquivos
-            ps_command = f"$files = @({files_str}); Set-Clipboard -Path $files"
+            # Comando PowerShell otimizado usando o arquivo temporário
+            ps_command = f"""
+                $files = Get-Content -Path "{temp_list_path}" -Encoding UTF8
+                try {{
+                    Set-Clipboard -Path $files -ErrorAction Stop
+                    Write-Output "Arquivos copiados para a área de transferência"
+                }} catch {{
+                    Write-Error "Falha ao copiar arquivos: $_"
+                    exit 1
+                }} finally {{
+                    Remove-Item -Path "{temp_list_path}" -Force
+                }}
+            """
             
-            # Executa o comando PowerShell
-            subprocess.run(['powershell', '-Command', ps_command], check=True)
+            # Executa o comando PowerShell com timeout
+            result = subprocess.run(['powershell', '-Command', ps_command], 
+                                check=True,
+                                capture_output=True,
+                                text=True,
+                                timeout=30)
             
-            logger.info(f"Arquivos copiados para a área de transferência: {self.files}")
-            
+            logger.info(f"Arquivos copiados com sucesso: {result.stdout}")
+            return True
+        except subprocess.TimeoutExpired:
+            logger.error("Timeout ao tentar copiar arquivos para área de transferência")
+            raise Exception("Operação demorou muito tempo")
+        except subprocess.CalledProcessError as e:
+            error_msg = f"Erro no PowerShell: {e.stderr}" if e.stderr else "Erro desconhecido no PowerShell"
+            logger.error(error_msg)
+            raise Exception(error_msg)
         except Exception as e:
-            logger.error(f"Falha ao copiar arquivos para área de transferência: {str(e)}")
-            raise Exception(f"Falha ao copiar arquivos para área de transferência: {str(e)}")
+            logger.error(f"Erro inesperado: {str(e)}")
+            raise Exception(f"Falha ao copiar arquivos: {str(e)}")
 
     def execute(self):
         # Conecta ao Terminal Server
@@ -42,20 +67,28 @@ class SendToTs:
             raise Exception("Falha ao conectar ao Terminal Server")
         time.sleep(30)
 
-        # Copia os arquivos para a área de transferência
-        self.copy_files_to_clipboard()
-        
-        # Abre nova janela do Explorer no destino
-        self.explorer_page.open_new_window()
-        time.sleep(3)
-        self.explorer_page.locate(self.destination)
-        time.sleep(3)
-        self.explorer_page.paste_files()
-        time.sleep(len(self.files) * 2)  # Aguarda a cópia ser concluída
-        
-        # Fecha a janela do Explorer
-        self.explorer_page.close_current_window()
-        
-        # Desconecta
-        if not self.terminal_server.disconnect():
-            raise Exception("Falha ao desconectar do Terminal Server")
+        try:
+            # Copia os arquivos para a área de transferência
+            self.copy_files_to_clipboard()
+            
+            # Abre nova janela do Explorer no destino
+            self.explorer_page.open_new_window()
+            time.sleep(3)
+            self.explorer_page.locate(self.destination)
+            time.sleep(3)
+            self.explorer_page.paste_files()
+            time.sleep(len(self.files) * 0.1)  # Aguarda a cópia ser concluída
+            time.sleep(3)
+            # Fecha a janela do Explorer
+            self.explorer_page.close_current_window()
+            time.sleep(1)
+
+            # Desconecta
+            if not self.terminal_server.disconnect():
+                raise Exception("Falha ao desconectar do Terminal Server")
+        except Exception as e:
+            logger.error(f"Erro inesperado: {str(e)}")
+            if not self.terminal_server.disconnect():
+                raise Exception("Falha ao desconectar do Terminal Server")
+            raise Exception(f"Falha ao copiar arquivos: {str(e)}")
+

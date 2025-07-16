@@ -26,7 +26,6 @@ class ProcessadorRecebimentos:
         try:
             self.temp_dir.mkdir(exist_ok=True)
 
-
             with zipfile.ZipFile(self.zip_path / self.zip_file, 'r') as zip_ref:
                 zip_ref.extractall(self.temp_dir / self.zip_file)
         except Exception as e:
@@ -80,4 +79,24 @@ class ProcessadorRecebimentos:
             (self.zip_path / self.zip_file).unlink()
         except Exception as e:
             logger.error(f"Erro ao limpar pasta temp - {str(e)}")
+            raise
+    
+    def limpar_xml(self):
+        logger.info(f"Limpando arquivos XML da pasta {Path(XML_DESTINATION_PATH)}")
+        try:
+            destino_final = Path(XML_DESTINATION_PATH)
+            # Cria a pasta se não existir
+            destino_final.mkdir(parents=True, exist_ok=True)
+            
+            # Remove apenas os arquivos XML da pasta
+            for arquivo in destino_final.glob('*.xml'):
+                try:
+                    arquivo.unlink()
+                    logger.info(f"Arquivo {arquivo.name} removido com sucesso")
+                except Exception as e:
+                    logger.warning(f"Erro ao remover arquivo {arquivo.name}: {str(e)}")
+            
+            logger.info(f"Limpeza de arquivos XML concluída")
+        except Exception as e:
+            logger.error(f"Erro ao tentar limpar arquivos XML: {str(e)}")
             raise
