@@ -16,7 +16,7 @@ Antes de começar, você precisará ter instalado em sua máquina:
 ### 1. Clone o repositório
 
 ```powershell
-git clone [URL_DO_REPOSITÓRIO]
+git clone https://github.com/SrMarinho/edocs_extractor_rpa
 cd edocs_extractor_rpa
 ```
 
@@ -125,5 +125,47 @@ edocs_extractor_rpa/
 Em caso de dúvidas ou problemas, consulte os logs gerados na pasta `logs` ou abra uma issue no repositório.
 
 ---
+
+## 🧪 Testes Automatizados
+
+O projeto possui testes unitários, de integração e end-to-end localizados na pasta `tests/`.
+
+### Instalação das dependências de teste
+
+```powershell
+pip install -r requirements-test.txt
+```
+
+### Executando os testes
+
+```powershell
+pytest
+```
+
+Você pode rodar testes específicos usando as marcações:
+- `unit`: Testes unitários
+- `integration`: Testes de integração
+- `e2e`: Testes end-to-end
+
+Exemplo:
+```powershell
+pytest -m unit
+```
+
+## 🛠️ Scripts Utilitários
+
+- `setup.ps1`: Automatiza a instalação do Python, criação do ambiente virtual e instalação das dependências.
+- `run.ps1`: Ativa o ambiente virtual e executa o projeto.
+
+## 📁 Drivers
+
+Coloque o `msedgedriver.exe` na pasta `drivers/` e configure o caminho no arquivo `.env`:
+```
+EDGE_DRIVER_PATH=C:\caminho\para\drivers\msedgedriver.exe
+```
+
+## ⚙️ Filtros de Recebimentos
+
+O arquivo `files/parametros/recebimentos_filters.toml` permite customizar filtros usados na extração de recebimentos. Edite conforme necessário para ajustar os critérios de busca no E-Docs.
 
 

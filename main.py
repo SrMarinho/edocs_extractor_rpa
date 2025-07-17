@@ -70,7 +70,6 @@ def process_xml_files(driver: webdriver.Edge, xml_dir: Path, host: str, destinat
         # Inicializa páginas e componentes
         login_page, recebimentos_page = initialize_pages(driver)
         
-
         xml_files = get_xml_files(xml_dir)
         send_to_ts = SendToTs(
             files=xml_files,
@@ -86,11 +85,8 @@ def process_xml_files(driver: webdriver.Edge, xml_dir: Path, host: str, destinat
             send_to_ts=send_to_ts
         )
         
-        # Executa a extração
         extrator.execute()
         
-        # Verifica e envia arquivos para o Terminal Server
-            
     except Exception as e:
         logger.critical(f"Erro crítico durante o processamento: {e}", exc_info=True)
         driver.save_screenshot("erro_critico.png")
