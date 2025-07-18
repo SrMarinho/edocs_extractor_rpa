@@ -139,7 +139,7 @@ pip install -r requirements-test.txt
 ### Executando os testes
 
 ```powershell
-pytest
+python -m pytest
 ```
 
 Você pode rodar testes específicos usando as marcações:
