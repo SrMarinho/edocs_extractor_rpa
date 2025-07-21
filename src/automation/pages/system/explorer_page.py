@@ -8,6 +8,7 @@ class ExplorerPage:
     def locate(self, location: str):
         """Foca no campo de endereço do Explorer"""
         try:
+            time.sleep(2)
             pyautogui.hotkey('ctrl', 'l')
             time.sleep(2)
             pyautogui.write(str(location))
