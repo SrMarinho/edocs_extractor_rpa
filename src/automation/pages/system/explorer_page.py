@@ -9,7 +9,10 @@ class ExplorerPage:
         """Foca no campo de endereço do Explorer"""
         try:
             time.sleep(2)
-            pyautogui.hotkey('ctrl', 'l')
+            pyautogui.keyDown('ctrl')
+            time.sleep(0.1)
+            pyautogui.press('l')
+            pyautogui.keyUp('ctrl')
             time.sleep(2)
             pyautogui.write(str(location))
             time.sleep(2)
