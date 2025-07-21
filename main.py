@@ -61,13 +61,10 @@ def initialize_pages(driver: webdriver.Edge) -> tuple[LoginPage, RecebimentosPag
         logger.error("Cadastre usuário e senha no Windows Credential Manager")
         raise ValueError("Cadastre usuário e senha no Windows Credential Manager")
 
-    username = creds.username
-    password = creds.password
-
     login_page = LoginPage(
         driver, 
-        username,
-        password
+        creds.username,
+        creds.password
     )
     
     recebimentos_page = RecebimentosPage(
