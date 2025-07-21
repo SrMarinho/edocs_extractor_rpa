@@ -107,7 +107,12 @@ class ExplorerPage:
     def paste_files(self):
         """Cola arquivos copiados/recortados no local atual do Explorer"""
         try:
-            pyautogui.hotkey('ctrl', 'v')
+            time.sleep(2)
+            pyautogui.keyDown('ctrl')
+            time.sleep(0.1)
+            pyautogui.press('v')
+            pyautogui.keyUp('ctrl')
+            time.sleep(2)
             logger.info(f"{self.PAGE_NAME} - Comando de colar executado")
             time.sleep(1)  # Pequena pausa para garantir que a ação seja completada
             return True
