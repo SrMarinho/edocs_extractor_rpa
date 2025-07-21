@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from typing import List, Optional
 
+import keyring
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service
 
@@ -38,17 +39,35 @@ def setup_environment() -> tuple[Path, str, str]:
 
 def setup_webdriver() -> webdriver.Edge:
     """Configura e inicializa o WebDriver do Edge."""
-    options = setup_edge_options(config.DOWNLOAD_PATH)
+    headless = False if os.getenv('HEADLESS_MODE', False) == True else True
+    options = setup_edge_options(config.DOWNLOAD_PATH, headless=headless)
     service = Service(executable_path=config.Drivers().edge["path"])
     return webdriver.Edge(service=service, options=options)
 
-
 def initialize_pages(driver: webdriver.Edge) -> tuple[LoginPage, RecebimentosPage]:
     """Inicializa as páginas necessárias para o processo."""
+    credential_key = os.getenv("WINDOWS_CREDENTIAL_MANAGER_EDOCS_KEY")
+    if not credential_key:
+        logger.warning("Erro ao tentar buscar usuário e senha no Windows Credential Manager, por favor, coloque suas credenciais lá, parando execução")
+        exit()
+
+    try:
+        creds = keyring.get_credential(credential_key, None)
+    except Exception as e:
+        logger.error("Erro ao tentar buscar usuário e senha no Windows Credential Manager, por favor, coloque suas credenciais lá")
+        raise e
+
+    if not creds:
+        logger.error("Cadastre usuário e senha no Windows Credential Manager")
+        raise ValueError("Cadastre usuário e senha no Windows Credential Manager")
+
+    username = creds.username
+    password = creds.password
+
     login_page = LoginPage(
         driver, 
-        os.getenv("EDOCS_USERNAME"), 
-        os.getenv("EDOCS_PASSWORD")
+        username,
+        password
     )
     
     recebimentos_page = RecebimentosPage(

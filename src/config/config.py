@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Any
+from src.utils.tools import local_path
 
 @dataclass
 class LoggerSettings:
@@ -12,13 +13,9 @@ class LoggerSettings:
 @dataclass
 class Drivers:
     edge: Dict[str, Any] = field(default_factory=lambda: {
-        "path": os.getenv("EDGE_DRIVER_PATH")
+        "path": os.getenv("EDGE_DRIVER_PATH", str(local_path() / "drivers" / "msedgedriver.exe"))
     })
 
-def get_download_directory() -> str:
-    """Função para carregar o diretório de download quando chamada"""
-    return rf"{os.getenv("XML_COMPRESSED_FILES_DESTINATION")}"
-
-TEMP_PATH = rf"{os.getcwd()}\files\temp"
-DOWNLOAD_PATH = os.getenv("DOWNLOAD_PATH", rf"{os.getcwd()}\files\zip")
-XML_DESTINATION_PATH = os.getenv("XML_FILE_FINAL_DESTINATION", rf"{os.getcwd()}\files\xml")
+TEMP_PATH = str(local_path() / "files" / "temp")
+DOWNLOAD_PATH = os.getenv("DOWNLOAD_PATH", str(local_path() / "files" / "zip"))
+XML_DESTINATION_PATH = os.getenv("XML_FILE_FINAL_DESTINATION", str(local_path() / "files" / "xml"))

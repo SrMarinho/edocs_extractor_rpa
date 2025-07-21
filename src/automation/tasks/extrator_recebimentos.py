@@ -56,7 +56,7 @@ class ExtratorRecebimentos:
                 self.send_to_ts.execute()
             
         except Exception as e:
-            logger.info(f"Erro ao tentar executar processo de recebimentos - {str(e)}")
+            logger.error(f"Erro ao tentar executar processo de recebimentos - {str(e)}")
             raise
         finally:
             self.processador_recebimentos.limpar_xml()

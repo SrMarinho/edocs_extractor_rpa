@@ -13,7 +13,7 @@ class LoginPage:
         self.driver = driver
         self.username = username
         self.password = password
-    
+
     def navigate(self) -> None:
         logger.info(f"{self.PAGE_NAME} - Navegando para pagina de login")
         self.driver.get(self.URL)

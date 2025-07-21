@@ -1,5 +1,6 @@
 import subprocess
 import time
+from src.logger_instance import logger
 
 class TerminalServer:
     def __init__(self, host: str):
@@ -12,7 +13,7 @@ class TerminalServer:
             subprocess.Popen(cmd, shell=True)
             return True
         except Exception as e:
-            print(f"Erro ao conectar: {str(e)}")
+            logger.error(f"Erro ao conectar: {str(e)}")
             return False
 
     def disconnect(self):
@@ -21,5 +22,5 @@ class TerminalServer:
             subprocess.run(cmd, shell=True, capture_output=True)
             return True
         except Exception as e:
-            print(f"Erro ao desconectar: {str(e)}")
+            logger.error(f"Erro ao desconectar: {str(e)}")
             return False
