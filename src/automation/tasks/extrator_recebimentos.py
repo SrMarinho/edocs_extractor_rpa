@@ -6,7 +6,8 @@ from src.core.use_cases.coletor_recebimentos import ColetorRecebimentos
 from src.core.use_cases.download_recebimentos import DownloadRecebimentos
 from src.core.use_cases.processador_recebimentos import ProcessadorRecebimentos
 from src.core.use_cases.send_to_ts import SendToTs
-from src.config.config import DOWNLOAD_PATH
+from src.config.config import DOWNLOAD_PATH, XML_DESTINATION_PATH
+from src.logger_instance import logger
 
 class ExtratorRecebimentos:
     def __init__(
@@ -15,7 +16,7 @@ class ExtratorRecebimentos:
             coletor_recebimentos: ColetorRecebimentos,
             download_recebimentos: DownloadRecebimentos, 
             processador_recebimentos: ProcessadorRecebimentos,
-            send_to_ts: SendToTs = None,  # Agora é opcional
+            send_to_ts: SendToTs = None,
         ):
         self.login_page = login_page
         self.coletor_recebimentos = coletor_recebimentos
@@ -47,14 +48,15 @@ class ExtratorRecebimentos:
 
             time.sleep(2)
 
-            # Envia para o Terminal Server (se configurado)
+            xml_dir = Path(XML_DESTINATION_PATH)
             if self.send_to_ts:
+                self.send_to_ts.files = [
+                    Path(XML_DESTINATION_PATH) / f for f in os.listdir(xml_dir)
+                ]
                 self.send_to_ts.execute()
             
         except Exception as e:
-            # Em caso de erro, tenta limpar os arquivos temporários
-            try:
-                self.processador_recebimentos.limpar_xml()
-            except:
-                pass  # Ignora erros na limpeza
-            raise e  # Re-lança o erro original
+            logger.info(f"Erro ao tentar executar processo de recebimentos - {str(e)}")
+            raise
+        finally:
+            self.processador_recebimentos.limpar_xml()

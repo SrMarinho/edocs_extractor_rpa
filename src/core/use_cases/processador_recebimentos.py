@@ -92,7 +92,6 @@ class ProcessadorRecebimentos:
             for arquivo in destino_final.glob('*.xml'):
                 try:
                     arquivo.unlink()
-                    logger.info(f"Arquivo {arquivo.name} removido com sucesso")
                 except Exception as e:
                     logger.warning(f"Erro ao remover arquivo {arquivo.name}: {str(e)}")
             

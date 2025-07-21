@@ -8,18 +8,20 @@ from src.logger_instance import logger
 class SendToTs:
     def __init__(
             self,
-            files: list[str], 
             terminal_server: TerminalServer,
             destination: str, 
+            files: list[str] = [], 
         ):
-        self.files = files
         self.terminal_server = terminal_server
         self.destination = destination
+        self.files = files
         self.explorer_page = ExplorerPage()
 
     def copy_files_to_clipboard(self):
         """Copia os arquivos para a área de transferência usando PowerShell com suporte a caminhos longos"""
         try:
+            if not self.files:
+                logger.info("Sem arquivos para serem copiados")
             # Cria um arquivo temporário com a lista de arquivos
             temp_list_path = os.path.join(os.path.dirname(self.files[0]), 'temp_file_list.txt')
             with open(temp_list_path, 'w', encoding='utf-8') as f:
@@ -66,10 +68,13 @@ class SendToTs:
         if not self.terminal_server.connect():
             raise Exception("Falha ao conectar ao Terminal Server")
         time.sleep(30)
+        logger.debug(len(self.files))
 
         try:
+            time.sleep(1)
             # Copia os arquivos para a área de transferência
             self.copy_files_to_clipboard()
+            time.sleep(1)
             
             # Abre nova janela do Explorer no destino
             self.explorer_page.open_new_window()
@@ -77,18 +82,17 @@ class SendToTs:
             self.explorer_page.locate(self.destination)
             time.sleep(3)
             self.explorer_page.paste_files()
-            time.sleep(len(self.files) * 0.1)  # Aguarda a cópia ser concluída
+            time.sleep(len(self.files) * 0.3)  # Aguarda a cópia ser concluída
             time.sleep(3)
             # Fecha a janela do Explorer
             self.explorer_page.close_current_window()
             time.sleep(1)
 
-            # Desconecta
-            if not self.terminal_server.disconnect():
-                raise Exception("Falha ao desconectar do Terminal Server")
         except Exception as e:
             logger.error(f"Erro inesperado: {str(e)}")
+            raise Exception(f"Falha ao copiar arquivos: {str(e)}")
+        
+        finally:
             if not self.terminal_server.disconnect():
                 raise Exception("Falha ao desconectar do Terminal Server")
-            raise Exception(f"Falha ao copiar arquivos: {str(e)}")
 
