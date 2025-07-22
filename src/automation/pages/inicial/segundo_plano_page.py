@@ -65,10 +65,8 @@ class SegundoPlanoPage:
     def download_all_results(self):
         logger.info(f"{self.PAGE_NAME} - Iniciando download de registros")
         
-        MAX_REFRESH_ATTEMPTS = 10
-        MAX_DOWNLOAD_ATTEMPTS = 20
-        DOWNLOAD_WAIT_TIME = 60
-        REFRESH_WAIT_TIME = 15
+        MAX_DOWNLOAD_ATTEMPTS = 50
+        REFRESH_WAIT_TIME = 30
         
         try:
             table = self._get_results_table()
