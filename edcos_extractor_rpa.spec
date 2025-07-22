@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('.env', '.'), ('.\\files', '.files/'), ('.\\drivers\\', '.drivers/')],
+    datas=[('.env', '.'), ('.\\files', 'files'), ('.\\drivers\\', 'drivers')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

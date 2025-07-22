@@ -11,7 +11,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from src.logger_instance import logger
-
+from src.utils.tools import local_path
 
 
 @unique
@@ -78,7 +78,7 @@ class RecebimentosFilterManifestacaoDestinatario(Enum):
         return self.name
 
 class RecebimentosFilter:
-    PARAMS_FILE = "files/parametros/recebimentos_filters.toml"
+    PARAMS_FILE = str(local_path() / "files/parametros/recebimentos_filters.toml")
     def __init__(
         self,
         situacao: str =  "", 
