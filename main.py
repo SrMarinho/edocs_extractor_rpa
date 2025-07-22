@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import keyring
+from cryptography.fernet import Fernet
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service
 
@@ -24,7 +25,7 @@ import src.config.config as config
 
 def setup_environment() -> tuple[Path, str, str]:
     """Configura e valida as variáveis de ambiente necessárias."""
-    xml_dir = Path(os.getenv("XML_FILE_FINAL_DESTINATION"))
+    xml_dir = Path(config.XML_DESTINATION_PATH)
     host = os.getenv("TERMINAL_SERVER_HOST")
     destination = str(Path(os.getenv("TERMINAL_SERVER_XML_FOLDER")))
 
@@ -61,10 +62,16 @@ def initialize_pages(driver: webdriver.Edge) -> tuple[LoginPage, RecebimentosPag
         logger.error("Cadastre usuário e senha no Windows Credential Manager")
         raise ValueError("Cadastre usuário e senha no Windows Credential Manager")
 
+    secret_key = os.getenv("SECRET_KEY", "")
+
+    cipher = Fernet(secret_key)
+
+    password = cipher.decrypt(creds.password)
+    
     login_page = LoginPage(
         driver, 
         creds.username,
-        creds.password
+        password.decode("utf-8")
     )
     
     recebimentos_page = RecebimentosPage(

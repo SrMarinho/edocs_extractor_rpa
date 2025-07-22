@@ -24,16 +24,19 @@ class ExtratorRecebimentos:
         self.processador_recebimentos = processador_recebimentos
         self.send_to_ts = send_to_ts
     
-    def execute(self):
+    def execute(self) -> None:
         try:
             # Login e coleta de dados
-            self.login_page.logar()
             time.sleep(2)
-            self.coletor_recebimentos.execute()
+            self.login_page.logar()
+
             time.sleep(5)
+            self.coletor_recebimentos.execute()
             
             # Download e processamento
+            time.sleep(5)
             self.download_recebimentos.execute()
+
             time.sleep(120)  # Aguarda download
             self.download_recebimentos.quit()
             time.sleep(1)
