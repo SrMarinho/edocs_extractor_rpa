@@ -78,7 +78,7 @@ class RecebimentosFilterManifestacaoDestinatario(Enum):
         return self.name
 
 class RecebimentosFilter:
-    PARAMS_FILE = str(local_path() / "files/parametros/recebimentos_filters.toml")
+    PARAMS_FILE = str(local_path() / "files" / "parametros" / "recebimentos_filters.toml")
     def __init__(
         self,
         situacao: str =  "", 
@@ -160,8 +160,6 @@ class RecebimentosFilter:
         current_date_formated = current_datetime.strftime("%d/%m/%Y")
         self.data_saida = current_date_formated
         logger.debug(f"Recebimentos Filtros - Data saida vazia, mundando o valor para hoje: {current_date_formated}")
-    
-        
     
     @staticmethod
     def get_params():
